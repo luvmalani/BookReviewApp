@@ -271,7 +271,7 @@ class BookReviewApp {
             
             if (response.ok) {
                 this.showAlert('Book added successfully!', 'success');
-                this.closeModal('addBookModal');
+                closeModal('addBookModal');
                 document.getElementById('bookForm').reset();
                 this.loadBooks();
             } else {
@@ -318,7 +318,7 @@ class BookReviewApp {
             
             if (response.ok) {
                 this.showAlert('Review added successfully!', 'success');
-                this.closeModal('addReviewModal');
+                closeModal('addReviewModal');
                 document.getElementById('reviewForm').reset();
                 this.loadReviews(this.selectedBookId);
                 this.loadReviewStats(this.selectedBookId);
@@ -326,6 +326,7 @@ class BookReviewApp {
                 this.showAlert(`Error: ${result.error || 'Failed to add review'}`, 'error');
             }
         } catch (error) {
+            console.error('Review save error:', error);
             this.showAlert('Failed to connect to server', 'error');
         }
     }
