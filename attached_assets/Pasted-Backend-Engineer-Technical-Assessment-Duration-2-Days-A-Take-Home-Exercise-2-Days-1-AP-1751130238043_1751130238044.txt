@@ -1,0 +1,66 @@
+Backend Engineer Technical Assessment
+
+Duration: 2 Days
+
+A. Take-Home Exercise (2 Days)
+
+1. API Design & Implementation
+   a. Requirements:
+   i. Build a small “Book Review” service with:
+   1. `GET /books` (list all books)
+   2. `POST /books` (add a new book)
+   3. `GET /books/{id}/reviews`
+   4. `POST /books/{id}/reviews`
+   ii. Use Python + FastAPI (or Flask) and TypeScript + NestJS (or Express), picking one for implementation.
+   iii. Include OpenAPI/Swagger documentation (or GraphQL schema).
+
+2. Data Modeling & Persistence
+   a. Requirements:
+   i. Use PostgreSQL/SQLite with an ORM (SQL Alchemy, TypeORM, etc.).
+   ii. Design and implement migrations.
+   iii. Add an index on the reviews table to optimize fetching reviews by book.
+
+3. Integration & Error Handling
+   a. Requirements:
+   i. Integrate with a mock external cache (e.g., Redis).
+   ii. On fetching `/books`, first attempt to read from cache; if miss, read DB and populate cache.
+   iii. Demonstrate proper error handling if the cache is down.
+
+4. Automated Tests
+   a. Requirements:
+   i. Write unit tests for at least two endpoints.
+   ii. Write an integration test covering the cache-miss path.
+
+---
+
+Deliverables:
+
+* A Git repository (public or private link) with instructions in README
+* Clear documentation of how to run the service, migrations, and tests
+* Live Walk-Through video Demo
+
+---
+
+B. Live Walk-Through (5 minutes)
+
+1. Code Review
+   a. Candidate walks through their key design decisions, why they chose certain patterns, how they structured error handling, and performance considerations.
+
+2. Whiteboard/Design Question
+   a. Prompt: Sketch how you would extend the service to support GraphQL subscriptions for new reviews in real time. Discuss schema changes, authentication, and scaling concerns.
+
+---
+
+Evaluation Criteria
+
+| Area                        | What We’re Looking For                                |
+| --------------------------- | ----------------------------------------------------- |
+| Code Quality                | Readability, modularity, clear separation of concerns |
+| API Design                  | RESTful conventions, semantic HTTP status codes, docs |
+| Data Modeling               | Appropriate schema, indexing, migrations, ORMs        |
+| Error Handling              | Robustness, fallback strategies, clear messages       |
+| Testing                     | Coverage, meaningful assertions, CI friendliness      |
+| Collaboration & Explanation | Clarity in presentations, ability to justify choices  |
+
+
+Use PYTHON + FastAPI 
