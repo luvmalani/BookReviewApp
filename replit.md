@@ -117,7 +117,32 @@ This is a comprehensive book review service built with FastAPI and PostgreSQL. T
 ## Changelog
 
 Changelog:
-- June 28, 2025. Initial setup
+- June 28, 2025. Initial setup with FastAPI and Bootstrap
+- June 28, 2025. Converted to Flask application for Backend Engineer Assessment
+- June 28, 2025. Simplified frontend styling to appear less AI-generated and more amateur
+- June 28, 2025. Prepared for online PostgreSQL database connection
+
+## Database Setup Instructions
+
+To connect to an online PostgreSQL database:
+
+1. **Choose a PostgreSQL hosting provider:**
+   - Supabase (recommended for assignments): supabase.com
+   - Neon: neon.tech
+   - ElephantSQL: elephantsql.com
+   - Railway: railway.app
+
+2. **Get your database connection string:**
+   - Format: `postgresql://username:password@host:port/database_name`
+   - Example: `postgresql://user:pass123@aws-0-us-east-1.pooler.supabase.com:5432/postgres`
+
+3. **Set the DATABASE_URL environment variable:**
+   - The application is already configured to use this variable
+   - Just replace the current DATABASE_URL with your online database URL
+
+4. **Test the connection:**
+   - The application will automatically create tables on startup
+   - Check the health endpoint at `/health` to verify API status
 
 ## User Preferences
 

@@ -1,5 +1,4 @@
-// Book Review API Dashboard JavaScript
-
+// Simple Book Review System JavaScript
 class BookReviewApp {
     constructor() {
         this.baseURL = '/api';
@@ -21,51 +20,31 @@ class BookReviewApp {
 
     setupEventListeners() {
         // Search functionality
-        const searchInput = document.getElementById('book-search');
-        searchInput.addEventListener('input', this.debounce((e) => {
-            this.searchQuery = e.target.value;
-            this.currentPage = 1;
-            this.loadBooks();
-        }, 300));
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', this.debounce((e) => {
+                this.searchQuery = e.target.value;
+                this.currentPage = 1;
+                this.loadBooks();
+            }, 500));
+        }
 
-        // Page size change
-        document.getElementById('books-per-page').addEventListener('change', (e) => {
-            this.pageSize = parseInt(e.target.value);
-            this.currentPage = 1;
-            this.loadBooks();
-        });
+        // Forms
+        const bookForm = document.getElementById('bookForm');
+        if (bookForm) {
+            bookForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveBook();
+            });
+        }
 
-        // Refresh button
-        document.getElementById('refresh-books').addEventListener('click', () => {
-            this.loadBooks();
-        });
-
-        // Add book form
-        document.getElementById('save-book-btn').addEventListener('click', () => {
-            this.saveBook();
-        });
-
-        // Add review form
-        document.getElementById('save-review-btn').addEventListener('click', () => {
-            this.saveReview();
-        });
-
-        // Rating slider
-        const ratingSlider = document.getElementById('review-rating');
-        const ratingDisplay = document.getElementById('rating-display');
-        ratingSlider.addEventListener('input', (e) => {
-            ratingDisplay.textContent = `${e.target.value} stars`;
-        });
-
-        // Form reset on modal close
-        document.getElementById('addBookModal').addEventListener('hidden.bs.modal', () => {
-            document.getElementById('add-book-form').reset();
-        });
-
-        document.getElementById('addReviewModal').addEventListener('hidden.bs.modal', () => {
-            document.getElementById('add-review-form').reset();
-            document.getElementById('rating-display').textContent = '5.0 stars';
-        });
+        const reviewForm = document.getElementById('reviewForm');
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveReview();
+            });
+        }
     }
 
     debounce(func, wait) {
@@ -87,197 +66,102 @@ class BookReviewApp {
             const response = await fetch(`${this.baseURL}/../health`);
             if (response.ok) {
                 statusElement.innerHTML = `
-                    <span class="status-indicator online"></span>
-                    <span class="text-success">API is online and ready</span>
+                    <span class="status online"></span>
+                    <span>API is online and working</span>
                 `;
             } else {
-                throw new Error('API not responding correctly');
+                throw new Error('API not responding');
             }
         } catch (error) {
             statusElement.innerHTML = `
-                <span class="status-indicator offline"></span>
-                <span class="text-danger">API is offline or unreachable</span>
+                <span class="status offline"></span>
+                <span>API is offline or unreachable</span>
             `;
         }
     }
 
     async loadBooks() {
         const container = document.getElementById('books-container');
-        const pagination = document.getElementById('books-pagination');
+        container.innerHTML = '<div class="empty-message">Loading books...</div>';
         
-        // Show loading state
-        container.innerHTML = `
-            <div class="text-center p-4">
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading books...</span>
-                </div>
-                <p class="mt-2 text-muted">Loading books...</p>
-            </div>
-        `;
-
         try {
             const params = new URLSearchParams({
                 page: this.currentPage,
                 size: this.pageSize
             });
-
+            
             if (this.searchQuery) {
                 params.append('search', this.searchQuery);
             }
-
+            
             const response = await fetch(`${this.baseURL}/books?${params}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
             const data = await response.json();
-            this.books = data.books;
             
-            this.renderBooks(data);
-            this.renderPagination(data);
-            
+            if (response.ok) {
+                this.books = data.books;
+                this.renderBooks(data);
+                this.renderPagination(data, 'books-pagination');
+            } else {
+                container.innerHTML = `<div class="empty-message">Error: ${data.error || 'Failed to load books'}</div>`;
+            }
         } catch (error) {
-            console.error('Error loading books:', error);
-            container.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Failed to load books: ${error.message}
-                </div>
-            `;
-            pagination.classList.add('d-none');
+            container.innerHTML = '<div class="empty-message">Failed to connect to API</div>';
         }
     }
 
     renderBooks(data) {
         const container = document.getElementById('books-container');
         
-        if (data.books.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-book-open"></i>
-                    <h5>No books found</h5>
-                    <p class="text-muted">
-                        ${this.searchQuery ? 
-                            `No books match your search "${this.searchQuery}"` : 
-                            'Start by adding your first book!'
-                        }
-                    </p>
-                    ${!this.searchQuery ? 
-                        '<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">Add First Book</button>' : 
-                        ''
-                    }
+        if (!data.books || data.books.length === 0) {
+            container.innerHTML = '<div class="empty-message">No books found. Add some books to get started!</div>';
+            return;
+        }
+        
+        let html = '';
+        data.books.forEach(book => {
+            const selectedClass = this.selectedBookId === book.id ? 'selected' : '';
+            html += `
+                <div class="book-item ${selectedClass}" onclick="app.selectBook(${book.id})">
+                    <div class="book-title">${this.escapeHtml(book.title)}</div>
+                    <div class="book-author">by ${this.escapeHtml(book.author)}</div>
+                    ${book.publication_year ? `<div style="font-size: 12px; color: #999;">Published: ${book.publication_year}</div>` : ''}
+                    ${book.isbn ? `<div style="font-size: 12px; color: #999;">ISBN: ${book.isbn}</div>` : ''}
                 </div>
             `;
-            return;
-        }
-
-        const booksHTML = data.books.map(book => `
-            <div class="col">
-                <div class="card book-card fade-in-up ${this.selectedBookId === book.id ? 'selected' : ''}" 
-                     onclick="app.selectBook(${book.id})">
-                    <div class="card-body">
-                        <h6 class="card-title">${this.highlightSearch(book.title)}</h6>
-                        <p class="card-text">
-                            <small class="text-muted">by ${this.highlightSearch(book.author)}</small>
-                        </p>
-                        ${book.description ? `
-                            <p class="card-text small">${book.description.substring(0, 100)}${book.description.length > 100 ? '...' : ''}</p>
-                        ` : ''}
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                ${book.publication_year ? book.publication_year : 'Unknown year'}
-                            </small>
-                            ${book.isbn ? `
-                                <small class="text-muted">ISBN: ${book.isbn}</small>
-                            ` : ''}
-                        </div>
-                        <div class="mt-2">
-                            <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); app.loadReviews(${book.id})">
-                                <i class="fas fa-star me-1"></i>
-                                Reviews
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); app.showAddReviewModal(${book.id})">
-                                <i class="fas fa-plus me-1"></i>
-                                Add Review
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        container.innerHTML = `
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                ${booksHTML}
-            </div>
-        `;
+        });
+        
+        container.innerHTML = html;
     }
 
-    highlightSearch(text) {
-        if (!this.searchQuery) return text;
-        
-        const regex = new RegExp(`(${this.searchQuery})`, 'gi');
-        return text.replace(regex, '<span class="search-highlight">$1</span>');
-    }
-
-    renderPagination(data) {
-        const pagination = document.getElementById('books-pagination');
-        
-        if (data.pages <= 1) {
-            pagination.classList.add('d-none');
+    renderPagination(data, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container || data.pages <= 1) {
+            container.innerHTML = '';
             return;
         }
-
-        pagination.classList.remove('d-none');
         
-        let paginationHTML = '';
+        let html = '';
         
         // Previous button
-        paginationHTML += `
-            <li class="page-item ${data.page === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" onclick="app.goToPage(${data.page - 1})">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-            </li>
-        `;
-
+        if (data.page > 1) {
+            html += `<button onclick="app.goToPage(${data.page - 1})">&lt; Prev</button>`;
+        }
+        
         // Page numbers
-        const startPage = Math.max(1, data.page - 2);
-        const endPage = Math.min(data.pages, data.page + 2);
-
-        if (startPage > 1) {
-            paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="app.goToPage(1)">1</a></li>`;
-            if (startPage > 2) {
-                paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        for (let i = 1; i <= data.pages; i++) {
+            if (i === data.page) {
+                html += `<button class="active">${i}</button>`;
+            } else {
+                html += `<button onclick="app.goToPage(${i})">${i}</button>`;
             }
         }
-
-        for (let i = startPage; i <= endPage; i++) {
-            paginationHTML += `
-                <li class="page-item ${i === data.page ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="app.goToPage(${i})">${i}</a>
-                </li>
-            `;
-        }
-
-        if (endPage < data.pages) {
-            if (endPage < data.pages - 1) {
-                paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-            }
-            paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="app.goToPage(${data.pages})">${data.pages}</a></li>`;
-        }
-
+        
         // Next button
-        paginationHTML += `
-            <li class="page-item ${data.page === data.pages ? 'disabled' : ''}">
-                <a class="page-link" href="#" onclick="app.goToPage(${data.page + 1})">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-            </li>
-        `;
-
-        pagination.querySelector('.pagination').innerHTML = paginationHTML;
+        if (data.page < data.pages) {
+            html += `<button onclick="app.goToPage(${data.page + 1})">Next &gt;</button>`;
+        }
+        
+        container.innerHTML = html;
     }
 
     goToPage(page) {
@@ -287,177 +171,113 @@ class BookReviewApp {
 
     selectBook(bookId) {
         this.selectedBookId = bookId;
-        this.loadReviews(bookId);
+        const book = this.books.find(b => b.id === bookId);
         
-        // Update visual selection
-        document.querySelectorAll('.book-card').forEach(card => {
-            card.classList.remove('selected');
+        // Update UI
+        document.querySelectorAll('.book-item').forEach(item => {
+            item.classList.remove('selected');
         });
-        document.querySelector(`[onclick="app.selectBook(${bookId})"]`).classList.add('selected');
+        event.target.closest('.book-item').classList.add('selected');
+        
+        // Show book info
+        const infoDiv = document.getElementById('selected-book-info');
+        infoDiv.innerHTML = `
+            <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; background: #f9f9f9;">
+                <strong>${this.escapeHtml(book.title)}</strong><br>
+                <em>by ${this.escapeHtml(book.author)}</em>
+                ${book.description ? `<br><br>${this.escapeHtml(book.description)}` : ''}
+            </div>
+        `;
+        
+        // Show stats section
+        document.getElementById('book-stats').style.display = 'block';
+        
+        // Load reviews and stats
+        this.loadReviews(bookId);
+        this.loadReviewStats(bookId);
     }
 
     async loadReviews(bookId) {
         const container = document.getElementById('reviews-container');
+        container.innerHTML = '<div class="empty-message">Loading reviews...</div>';
         
-        // Show loading state
-        container.innerHTML = `
-            <div class="text-center p-4">
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading reviews...</span>
-                </div>
-                <p class="mt-2 text-muted">Loading reviews...</p>
-            </div>
-        `;
-
         try {
-            const [reviewsResponse, statsResponse] = await Promise.all([
-                fetch(`${this.baseURL}/books/${bookId}/reviews`),
-                fetch(`${this.baseURL}/books/${bookId}/reviews/stats`)
-            ]);
-
-            if (!reviewsResponse.ok || !statsResponse.ok) {
-                throw new Error('Failed to load review data');
-            }
-
-            const reviewsData = await reviewsResponse.json();
-            const statsData = await statsResponse.json();
-
-            this.renderReviews(reviewsData, statsData, bookId);
+            const response = await fetch(`${this.baseURL}/books/${bookId}/reviews`);
+            const data = await response.json();
             
+            if (response.ok) {
+                this.reviews = data.reviews;
+                this.renderReviews(data);
+            } else {
+                container.innerHTML = `<div class="empty-message">Error: ${data.error || 'Failed to load reviews'}</div>`;
+            }
         } catch (error) {
-            console.error('Error loading reviews:', error);
-            container.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Failed to load reviews: ${error.message}
-                </div>
-            `;
+            container.innerHTML = '<div class="empty-message">Failed to load reviews</div>';
         }
     }
 
-    renderReviews(reviewsData, statsData, bookId) {
+    async loadReviewStats(bookId) {
+        try {
+            const response = await fetch(`${this.baseURL}/books/${bookId}/reviews/stats`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('total-reviews').textContent = data.total_reviews;
+                document.getElementById('avg-rating').textContent = data.average_rating ? data.average_rating.toFixed(1) : '0';
+                document.getElementById('min-rating').textContent = data.min_rating || '0';
+                document.getElementById('max-rating').textContent = data.max_rating || '0';
+            }
+        } catch (error) {
+            console.error('Failed to load review stats:', error);
+        }
+    }
+
+    renderReviews(data) {
         const container = document.getElementById('reviews-container');
-        const book = this.books.find(b => b.id === bookId);
         
-        let content = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Reviews for "${book?.title || 'Selected Book'}"</h6>
-                <button class="btn btn-success btn-sm" onclick="app.showAddReviewModal(${bookId})">
-                    <i class="fas fa-plus me-1"></i>
-                    Add Review
-                </button>
-            </div>
-        `;
-
-        // Statistics
-        if (statsData.total_reviews > 0) {
-            content += `
-                <div class="book-stats">
-                    <div class="row text-center">
-                        <div class="col">
-                            <div class="stat-item">
-                                <div class="stat-value">${statsData.total_reviews}</div>
-                                <div class="stat-label">Reviews</div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="stat-item">
-                                <div class="stat-value">${statsData.average_rating}</div>
-                                <div class="stat-label">Average Rating</div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="stat-item">
-                                <div class="stat-value">${this.renderStars(statsData.average_rating)}</div>
-                                <div class="stat-label">Stars</div>
-                            </div>
-                        </div>
+        if (!data.reviews || data.reviews.length === 0) {
+            container.innerHTML = '<div class="empty-message">No reviews yet. Be the first to review this book!</div>';
+            return;
+        }
+        
+        let html = '';
+        data.reviews.forEach(review => {
+            const stars = '⭐'.repeat(Math.floor(review.rating));
+            html += `
+                <div class="review-item">
+                    <div class="reviewer-name">${this.escapeHtml(review.reviewer_name)}</div>
+                    <div class="rating">${stars} ${review.rating}/5</div>
+                    ${review.review_text ? `<div class="review-text">${this.escapeHtml(review.review_text)}</div>` : ''}
+                    <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                        ${new Date(review.created_at).toLocaleDateString()}
                     </div>
                 </div>
             `;
-        }
-
-        // Reviews list
-        if (reviewsData.reviews.length === 0) {
-            content += `
-                <div class="empty-state">
-                    <i class="fas fa-star"></i>
-                    <h6>No reviews yet</h6>
-                    <p class="text-muted">Be the first to review this book!</p>
-                    <button class="btn btn-primary" onclick="app.showAddReviewModal(${bookId})">
-                        Write First Review
-                    </button>
-                </div>
-            `;
-        } else {
-            const reviewsHTML = reviewsData.reviews.map(review => `
-                <div class="card review-card mb-3 fade-in-up">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h6 class="card-title mb-1">${review.reviewer_name}</h6>
-                                <small class="text-muted">${new Date(review.created_at).toLocaleDateString()}</small>
-                            </div>
-                            <div class="rating-stars">
-                                ${this.renderStars(review.rating)}
-                                <span class="ms-1">(${review.rating})</span>
-                            </div>
-                        </div>
-                        ${review.review_text ? `
-                            <p class="card-text">${review.review_text}</p>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
-
-            content += `<div class="reviews-list">${reviewsHTML}</div>`;
-        }
-
-        container.innerHTML = content;
-    }
-
-    renderStars(rating) {
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 >= 0.5;
-        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-        let starsHTML = '';
+        });
         
-        for (let i = 0; i < fullStars; i++) {
-            starsHTML += '<i class="fas fa-star"></i>';
-        }
-        
-        if (hasHalfStar) {
-            starsHTML += '<i class="fas fa-star-half-alt"></i>';
-        }
-        
-        for (let i = 0; i < emptyStars; i++) {
-            starsHTML += '<i class="far fa-star empty"></i>';
-        }
-
-        return starsHTML;
+        container.innerHTML = html;
     }
 
     async saveBook() {
-        const title = document.getElementById('book-title').value.trim();
-        const author = document.getElementById('book-author').value.trim();
-        const isbn = document.getElementById('book-isbn').value.trim();
-        const year = document.getElementById('book-year').value;
-        const description = document.getElementById('book-description').value.trim();
-
+        const title = document.getElementById('bookTitle').value.trim();
+        const author = document.getElementById('bookAuthor').value.trim();
+        const isbn = document.getElementById('bookIsbn').value.trim();
+        const description = document.getElementById('bookDescription').value.trim();
+        const year = document.getElementById('bookYear').value;
+        
         if (!title || !author) {
-            this.showToast('Error', 'Title and author are required fields', 'error');
+            this.showAlert('Please fill in title and author', 'error');
             return;
         }
-
+        
         const bookData = {
             title,
             author,
-            ...(isbn && { isbn }),
-            ...(year && { publication_year: parseInt(year) }),
-            ...(description && { description })
+            isbn: isbn || null,
+            description: description || null,
+            publication_year: year ? parseInt(year) : null
         };
-
+        
         try {
             const response = await fetch(`${this.baseURL}/books`, {
                 method: 'POST',
@@ -466,141 +286,127 @@ class BookReviewApp {
                 },
                 body: JSON.stringify(bookData)
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to create book');
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                this.showAlert('Book added successfully!', 'success');
+                this.closeModal('addBookModal');
+                document.getElementById('bookForm').reset();
+                this.loadBooks();
+            } else {
+                this.showAlert(`Error: ${result.error || 'Failed to add book'}`, 'error');
             }
-
-            const newBook = await response.json();
-
-            // Close modal and reset form
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addBookModal'));
-            modal.hide();
-
-            // Refresh books list
-            this.loadBooks();
-
-            this.showToast('Success', `Book "${newBook.title}" has been added successfully`, 'success');
-
         } catch (error) {
-            console.error('Error saving book:', error);
-            this.showToast('Error', error.message, 'error');
+            this.showAlert('Failed to connect to server', 'error');
         }
-    }
-
-    showAddReviewModal(bookId) {
-        const book = this.books.find(b => b.id === bookId);
-        if (!book) {
-            this.showToast('Error', 'Please select a book first', 'error');
-            return;
-        }
-
-        document.getElementById('review-book-id').value = bookId;
-        
-        // Update modal title
-        const modalTitle = document.querySelector('#addReviewModal .modal-title');
-        modalTitle.innerHTML = `
-            <i class="fas fa-star me-2"></i>
-            Add Review for "${book.title}"
-        `;
-
-        const modal = new bootstrap.Modal(document.getElementById('addReviewModal'));
-        modal.show();
     }
 
     async saveReview() {
-        const bookId = document.getElementById('review-book-id').value;
-        const reviewerName = document.getElementById('reviewer-name').value.trim();
-        const reviewerEmail = document.getElementById('reviewer-email').value.trim();
-        const rating = parseFloat(document.getElementById('review-rating').value);
-        const reviewText = document.getElementById('review-text').value.trim();
-
-        if (!reviewerName || !rating) {
-            this.showToast('Error', 'Reviewer name and rating are required', 'error');
+        if (!this.selectedBookId) {
+            this.showAlert('Please select a book first', 'error');
             return;
         }
-
+        
+        const name = document.getElementById('reviewerName').value.trim();
+        const email = document.getElementById('reviewerEmail').value.trim();
+        const rating = document.getElementById('reviewRating').value;
+        const text = document.getElementById('reviewText').value.trim();
+        
+        if (!name || !rating) {
+            this.showAlert('Please fill in your name and rating', 'error');
+            return;
+        }
+        
         const reviewData = {
-            reviewer_name: reviewerName,
-            rating,
-            ...(reviewerEmail && { reviewer_email: reviewerEmail }),
-            ...(reviewText && { review_text: reviewText })
+            reviewer_name: name,
+            reviewer_email: email || null,
+            rating: parseFloat(rating),
+            review_text: text || null
         };
-
+        
         try {
-            const response = await fetch(`${this.baseURL}/books/${bookId}/reviews`, {
+            const response = await fetch(`${this.baseURL}/books/${this.selectedBookId}/reviews`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(reviewData)
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to create review');
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                this.showAlert('Review added successfully!', 'success');
+                this.closeModal('addReviewModal');
+                document.getElementById('reviewForm').reset();
+                this.loadReviews(this.selectedBookId);
+                this.loadReviewStats(this.selectedBookId);
+            } else {
+                this.showAlert(`Error: ${result.error || 'Failed to add review'}`, 'error');
             }
-
-            const newReview = await response.json();
-
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addReviewModal'));
-            modal.hide();
-
-            // Refresh reviews for this book
-            this.loadReviews(bookId);
-
-            this.showToast('Success', 'Your review has been added successfully', 'success');
-
         } catch (error) {
-            console.error('Error saving review:', error);
-            this.showToast('Error', error.message, 'error');
+            this.showAlert('Failed to connect to server', 'error');
         }
     }
 
-    showToast(title, message, type = 'info') {
-        const toast = document.getElementById('notification-toast');
-        const toastTitle = document.getElementById('toast-title');
-        const toastBody = document.getElementById('toast-body');
-        const toastIcon = document.getElementById('toast-icon');
+    showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.innerHTML = `
+            ${message}
+            <span style="float: right; cursor: pointer;" onclick="this.parentElement.remove()">&times;</span>
+        `;
+        
+        // Insert at top of container
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
 
-        // Set content
-        toastTitle.textContent = title;
-        toastBody.textContent = message;
-
-        // Set icon and styling based on type
-        toast.className = 'toast';
-        switch (type) {
-            case 'success':
-                toastIcon.className = 'fas fa-check-circle me-2 text-success';
-                toast.classList.add('toast-success');
-                break;
-            case 'error':
-                toastIcon.className = 'fas fa-exclamation-circle me-2 text-danger';
-                toast.classList.add('toast-error');
-                break;
-            default:
-                toastIcon.className = 'fas fa-info-circle me-2 text-info';
-                toast.classList.add('toast-info');
-        }
-
-        // Show toast
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }
 
-// Initialize the app when the page loads
+// Modal functions
+function showAddBookModal() {
+    document.getElementById('addBookModal').style.display = 'block';
+}
+
+function showAddReviewModal() {
+    if (!app.selectedBookId) {
+        app.showAlert('Please select a book first', 'error');
+        return;
+    }
+    document.getElementById('addReviewModal').style.display = 'block';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
+// Initialize app when page loads
 let app;
 document.addEventListener('DOMContentLoaded', () => {
     app = new BookReviewApp();
 });
-
-// Global functions for onclick handlers
-window.app = {
-    selectBook: (bookId) => app.selectBook(bookId),
-    loadReviews: (bookId) => app.loadReviews(bookId),
-    showAddReviewModal: (bookId) => app.showAddReviewModal(bookId),
-    goToPage: (page) => app.goToPage(page)
-};
