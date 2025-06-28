@@ -14,7 +14,6 @@ class BookReviewApp {
 
     init() {
         this.setupEventListeners();
-        this.checkAPIStatus();
         this.loadBooks();
     }
 
@@ -59,26 +58,7 @@ class BookReviewApp {
         };
     }
 
-    async checkAPIStatus() {
-        const statusElement = document.getElementById('api-status');
-        
-        try {
-            const response = await fetch(`${this.baseURL}/../health`);
-            if (response.ok) {
-                statusElement.innerHTML = `
-                    <span class="status online"></span>
-                    <span>API is online and working</span>
-                `;
-            } else {
-                throw new Error('API not responding');
-            }
-        } catch (error) {
-            statusElement.innerHTML = `
-                <span class="status offline"></span>
-                <span>API is offline or unreachable</span>
-            `;
-        }
-    }
+
 
     async loadBooks() {
         const container = document.getElementById('books-container');
