@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Review API - Interactive Dashboard</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-book-reader me-2"></i>
+                Book Review API
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/docs" target="_blank">
+                    <i class="fas fa-code me-1"></i>
+                    API Docs
+                </a>
+                <a class="nav-link" href="/redoc" target="_blank">
+                    <i class="fas fa-file-alt me-1"></i>
+                    ReDoc
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <!-- API Status Section -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-heartbeat me-2"></i>
+                            API Status
+                        </h5>
+                        <div id="api-status" class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span>Checking API status...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Books Management Section -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-books me-2"></i>
+                            Books Management
+                        </h5>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">
+                            <i class="fas fa-plus me-1"></i>
+                            Add Book
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Search and Filter Controls -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="book-search" class="form-control" placeholder="Search books by title or author...">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="books-per-page" class="form-select">
+                                    <option value="5">5 per page</option>
+                                    <option value="10" selected>10 per page</option>
+                                    <option value="20">20 per page</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="refresh-books" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-sync-alt me-1"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Books List -->
+                        <div id="books-container">
+                            <div class="text-center p-4">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading books...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <nav id="books-pagination" class="d-none">
+                            <ul class="pagination justify-content-center">
+                                <!-- Pagination buttons will be inserted here -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star me-2"></i>
+                            Reviews Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="reviews-container">
+                            <div class="text-muted text-center p-4">
+                                <i class="fas fa-arrow-up me-2"></i>
+                                Select a book above to view and manage its reviews
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Book Modal -->
+    <div class="modal fade" id="addBookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus me-2"></i>
+                        Add New Book
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-book-form">
+                        <div class="mb-3">
+                            <label for="book-title" class="form-label">Title *</label>
+                            <input type="text" class="form-control" id="book-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-author" class="form-label">Author *</label>
+                            <input type="text" class="form-control" id="book-author" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="book-isbn" placeholder="Optional">
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-year" class="form-label">Publication Year</label>
+                            <input type="number" class="form-control" id="book-year" min="1000" max="2030">
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="book-description" rows="3" placeholder="Optional book description"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-book-btn">
+                        <i class="fas fa-save me-1"></i>
+                        Save Book
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Review Modal -->
+    <div class="modal fade" id="addReviewModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-star me-2"></i>
+                        Add Review
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-review-form">
+                        <input type="hidden" id="review-book-id">
+                        <div class="mb-3">
+                            <label for="reviewer-name" class="form-label">Your Name *</label>
+                            <input type="text" class="form-control" id="reviewer-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reviewer-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="reviewer-email" placeholder="Optional">
+                        </div>
+                        <div class="mb-3">
+                            <label for="review-rating" class="form-label">Rating *</label>
+                            <div class="rating-input">
+                                <input type="range" class="form-range" id="review-rating" min="1" max="5" step="0.5" value="5">
+                                <div class="d-flex justify-content-between">
+                                    <small>1 star</small>
+                                    <strong id="rating-display">5.0 stars</strong>
+                                    <small>5 stars</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="review-text" class="form-label">Review</label>
+                            <textarea class="form-control" id="review-text" rows="4" placeholder="Share your thoughts about this book..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-review-btn">
+                        <i class="fas fa-save me-1"></i>
+                        Save Review
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notification-toast" class="toast" role="alert">
+            <div class="toast-header">
+                <i id="toast-icon" class="fas fa-info-circle me-2"></i>
+                <strong id="toast-title" class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div id="toast-body" class="toast-body">
+                <!-- Message will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
