@@ -106,9 +106,8 @@ books.id, books.title, books.author, books.isbn
 
 reviews.book_id, reviews.rating, reviews.created_at
 
-📂 Project Structure
-php
-Copy code
+## 📂 Project Structure
+```bash
 .
 ├── app.py                  # Main FastAPI entrypoint
 ├── config.py               # Settings via pydantic-settings
@@ -123,6 +122,8 @@ Copy code
 ├── tests/                  # Unit and integration tests
 ├── pyproject.toml
 └── README.md → http://localhost:8000/docs
+
+```
 
 ### 2. Installation
 
