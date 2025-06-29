@@ -1,4 +1,4 @@
-/* Basic styling - looks more amateur */
+/* Basic styling*/
 body {
     background-color: #f8f9fa;
     font-family: Arial, sans-serif;
@@ -48,7 +48,7 @@ h1 {
 
 .btn {
     background: #007bff;
-    color: white;
+    color: white; 
     border: 1px solid #007bff;
     padding: 6px 12px;
     margin: 3px;

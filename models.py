@@ -15,7 +15,7 @@ class Book(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationship to reviews
+# Relationship to reviews
     reviews = relationship("Review", back_populates="book", cascade="all, delete-orphan")
     
     def __repr__(self):

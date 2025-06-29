@@ -1,22 +1,24 @@
 [project]
-name = "repl-nix-workspace"
+name = "book-review-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "A FastAPI application for book reviews with caching and PostgreSQL support"
 requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.16.2",
     "email-validator>=2.2.0",
-    "fastapi>=0.115.14",
+    "fastapi==0.95.2",
     "flask>=3.1.1",
     "flask-sqlalchemy>=3.1.1",
     "gunicorn>=23.0.0",
     "psycopg2-binary>=2.9.10",
-    "pydantic>=2.11.7",
-    "pydantic-settings>=2.10.1",
+    "pydantic==1.10.13",
+    "pydantic-settings==0.2.1",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.0.0",
     "python-multipart>=0.0.20",
+    "jinja2>=3.0.0",
     "redis>=6.2.0",
     "sqlalchemy>=2.0.41",
-    "uvicorn[standard]>=0.35.0",
+    "uvicorn[standard]>=0.23.0",
 ]
+

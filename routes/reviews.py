@@ -37,7 +37,8 @@ async def get_book_reviews(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Book with id {book_id} not found"
             )
-        
+        else:
+            logger.info(f"Fetching reviews for book: {book_id}")        
         # Create cache key
         cache_key = f"reviews:book:{book_id}:page:{page}:size:{size}:rating:{rating_filter or 'none'}"
         

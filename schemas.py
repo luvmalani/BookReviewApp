@@ -1,7 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, validator
-
 # Book schemas
 class BookBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)

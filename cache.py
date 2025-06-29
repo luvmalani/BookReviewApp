@@ -15,7 +15,7 @@ class CacheService:
                 socket_connect_timeout=5,
                 socket_timeout=5
             )
-            # Test connection
+# Test connection
             self.redis_client.ping()
             self.is_available = True
             logger.info("Redis connection established")

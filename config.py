@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # Database configuration
-    database_url: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/bookreview")
+    database_url: str = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/bookreview")
     
     # Redis configuration
     redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
