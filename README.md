@@ -50,7 +50,7 @@ redis-server
  ### Run the Application
 You can either run the app directly or using a virtual environment.
 
-##🔹 Method 1: Directly with pip
+🔹 Method 1: Directly with pip
 1. Install dependencies
 
 pip install fastapi flask flask-sqlalchemy gunicorn redis psycopg2-binary sqlalchemy alembic uvicorn[standard] pydantic==1.10.13 pydantic-settings email-validator pytest pytest-asyncio python-multipart PyYAML==6.0
@@ -63,7 +63,7 @@ pip install fastapi flask flask-sqlalchemy gunicorn redis psycopg2-binary sqlalc
 
   uvicorn app:app --reload
 
-##🔹 Method 2: Using venv (Recommended)
+🔹 Method 2: Using venv (Recommended)
 1. Create & activate virtual environment
 
 python -m venv venv
