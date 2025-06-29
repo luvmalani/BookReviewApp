@@ -41,6 +41,89 @@ A Flask-based book review API with PostgreSQL database and web interface for man
 - PostgreSQL database (local or online)
 - Redis (optional, for caching)
 
+### 🚀 Starting Redis Server
+
+Before launching the app, make sure **Redis server** is up and running.
+On Windows (if installed via Redis MSI or Chocolatey):
+redis-server
+
+ ### Run the Application
+You can either run the app directly or using a virtual environment.
+
+##🔹 Method 1: Directly with pip
+1. Install dependencies
+
+pip install fastapi flask flask-sqlalchemy gunicorn redis psycopg2-binary sqlalchemy alembic uvicorn[standard] pydantic==1.10.13 pydantic-settings email-validator pytest pytest-asyncio python-multipart PyYAML==6.0
+
+2. Apply database migrations
+
+  alembic upgrade head
+
+3. Run the FastAPI app
+
+  uvicorn app:app --reload
+
+##🔹 Method 2: Using venv (Recommended)
+1. Create & activate virtual environment
+
+python -m venv venv
+# On Linux/macOS:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+2. Install all dependencies
+
+pip install fastapi flask flask-sqlalchemy gunicorn redis psycopg2-binary sqlalchemy alembic uvicorn[standard] pydantic==1.10.13 pydantic-settings email-validator pytest pytest-asyncio python-multipart PyYAML==6.0
+
+3. Run Alembic migrations
+
+alembic upgrade head
+
+4. Start the development server
+
+uvicorn app:app --reload
+
+## 📖 API Documentation
+Swagger UI → http://localhost:8000/docs
+
+🧪 Run Tests
+bash
+Copy code
+pytest
+✅ Unit tests for two core endpoints
+
+🔄 Integration test validating cache-miss Redis fallback
+
+🧱 Database
+ORM: SQLAlchemy
+
+Migration Tool: Alembic
+
+Indexed fields on:
+
+books.id, books.title, books.author, books.isbn
+
+reviews.book_id, reviews.rating, reviews.created_at
+
+📂 Project Structure
+php
+Copy code
+.
+├── app.py                  # Main FastAPI entrypoint
+├── config.py               # Settings via pydantic-settings
+├── database.py             # DB engine, session, and Base
+├── models/                 # SQLAlchemy models
+├── routes/                 # API routes for books & reviews
+├── templates/              # Jinja2 HTML templates
+├── static/                 # CSS + JS frontend
+├── alembic/                # DB migration tool
+│   └── versions/
+│       └── 001_initial_migration.py
+├── tests/                  # Unit and integration tests
+├── pyproject.toml
+└── README.md → http://localhost:8000/docs
+
 ### 2. Installation
 
 ```bash
