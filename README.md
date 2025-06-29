@@ -52,9 +52,9 @@ You can either run the app directly or using a virtual environment.
 
 🔹 Method 1: Directly with pip
 1. Install dependencies
-
+```bash
 pip install fastapi flask flask-sqlalchemy gunicorn redis psycopg2-binary sqlalchemy alembic uvicorn[standard] pydantic==1.10.13 pydantic-settings email-validator pytest pytest-asyncio python-multipart PyYAML==6.0
-
+```
 2. Apply database migrations
 
   alembic upgrade head
@@ -73,9 +73,9 @@ source venv/bin/activate
 venv\Scripts\activate
 
 2. Install all dependencies
-
+```bash
 pip install fastapi flask flask-sqlalchemy gunicorn redis psycopg2-binary sqlalchemy alembic uvicorn[standard] pydantic==1.10.13 pydantic-settings email-validator pytest pytest-asyncio python-multipart PyYAML==6.0
-
+```
 3. Run Alembic migrations
 
 alembic upgrade head
