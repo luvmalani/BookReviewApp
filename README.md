@@ -155,7 +155,9 @@ To connect to an online PostgreSQL database:
 
 Before launching the app, make sure **Redis server** is up and running.
 On Windows (if installed via Redis MSI or Chocolatey):
-redis-server
+```bash
+redis-server.exe
+```
 
  ### Run the Application
 You can either run the app directly or using a virtual environment.
